@@ -1,0 +1,116 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure("2") do |config|
+
+  config.vm.provision "shell", inline: "echo ######################### From the root manager :)))"
+  #
+  #  
+  config.vm.define "ansibleHost" do |ansibleHost|
+  
+    ansibleHost.vm.box = "ubuntu/bionic64"
+	
+	ansibleHost.vm.box_url = "https://vagrantcloud.com/hashicorp/bionic64"
+	
+	ansibleHost.disksize.size = '30GB'
+	
+	ansibleHost.ssh.password=false
+	
+	ansibleHost.ssh.insert_key=true
+	
+	ansibleHost.ssh.username="vagrant"
+	
+	ansibleHost.vm.network "public_network"
+	
+	ansibleHost.vm.synced_folder "C:/Users/Lenovo/OneDrive/Desktop/Techical/Ansible/share-folder", "/home/share-folder"
+	
+	ansibleHost.vm.provision "shell" do |s| 
+		s.inline = <<-SHELL
+			echo "######################### this is ansible host controller manager"
+		SHELL
+    end
+	
+	ansibleHost.vm.provider "virtualbox" do |vb|
+	     vb.name = "ansible-host-ubuntu-bionic64-18.04"
+		 vb.gui = false
+		 vb.memory = "4096"
+		 vb.cpus = 2
+    end
+   
+  end
+	
+  #
+  #
+  config.vm.define "ansibleSlave" do |ansibleSlave|
+  
+    ansibleSlave.vm.box = "ubuntu/bionic64"
+	
+	ansibleSlave.vm.box_url = "https://vagrantcloud.com/hashicorp/bionic64"
+	
+	ansibleSlave.disksize.size = '30GB'
+	
+	ansibleSlave.ssh.password=false
+	
+	ansibleSlave.ssh.insert_key=true
+	
+	ansibleSlave.ssh.username="vagrant"
+	
+	ansibleSlave.vm.network "public_network"
+	
+	ansibleSlave.vm.synced_folder "C:/Users/Lenovo/OneDrive/Desktop/Techical/Ansible/share-folder", "/home/share-folder"
+	
+	ansibleSlave.vm.provision "shell" do |s| 
+		s.inline = <<-SHELL
+			echo "######################### this is ansible slave manager"
+		SHELL
+    end
+	
+	ansibleSlave.vm.provider "virtualbox" do |vb|
+	     vb.name = "ansible-slave-ubuntu-bionic64-18.04"
+		 vb.gui = false
+		 vb.memory = "4096"
+		 vb.cpus = 2
+    end
+	
+  end
+  
+  #
+  #
+  config.vm.define "ansibleSlave1" do |ansibleSlave1|
+  
+    ansibleSlave1.vm.box = "ubuntu/bionic64"
+	
+	ansibleSlave1.vm.box_url = "https://vagrantcloud.com/hashicorp/bionic64"
+	
+	ansibleSlave1.disksize.size = '30GB'
+	
+	ansibleSlave1.ssh.password=false
+	
+	ansibleSlave1.ssh.insert_key=true
+	
+	ansibleSlave1.ssh.username="vagrant"
+	
+	ansibleSlave1.vm.network "public_network"
+	
+	ansibleSlave1.vm.synced_folder "C:/Users/Lenovo/OneDrive/Desktop/Techical/Ansible/share-folder", "/home/share-folder"
+	
+	ansibleSlave1.vm.provision "shell" do |s| 
+		s.inline = <<-SHELL
+			echo "######################### this is ansible slave1 manager"
+		SHELL
+    end
+	
+	ansibleSlave1.vm.provider "virtualbox" do |vb|
+	     vb.name = "ansible-slave1-ubuntu-bionic64-18.04"
+		 vb.gui = false
+		 vb.memory = "4096"
+		 vb.cpus = 2
+    end
+	
+  end
+	
+end
