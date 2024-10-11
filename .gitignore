@@ -33,6 +33,6 @@ build/
 .vscode/
 
 # Include all files in the .vagrant directories
-!**/.vargrant/*
+**/.vagrant/
 
-!**/ubuntu-bionic-18.04-cloudimg-console.log
+**/*.log
