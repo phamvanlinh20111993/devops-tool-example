@@ -20,6 +20,9 @@ else
 fi
 unset SSH_TYPE
 
+echo "current user name: $(whoami)"
+echo "print working directory: $pwd"
+echo "current working folder: $HOME"
 
 if [ ! -d $HOME/.ssh ]; then
   echo "folder $HOME/.ssh does not exist. Created it !!!"
@@ -50,6 +53,16 @@ if [ "$2" ]; then
  REMOTE_USER=$2
 fi
 
+CUSTOM_KEY_PATH=""
+if [ "$3" ]; then
+ CUSTOM_KEY_PATH=$3
+fi
+
+CUSTOM_KEY_NAME=""
+if [ "$4" ]; then
+ CUSTOM_KEY_NAME=$4
+fi
+
 FOLDER_STORE_SSH_KEY="$HOME/.ssh/remote-host-key"
 
 FILE_NAME=$(echo $RANDOM | md5sum | head -c 20)
@@ -57,15 +70,30 @@ FILE_NAME=$(echo $RANDOM | md5sum | head -c 20)
 
 PATH_KEY=$FOLDER_STORE_SSH_KEY/$FILE_NAME
 if [ ! -d $FOLDER_STORE_SSH_KEY ]; then
-  echo "################################### $FOLDER_STORE_SSH_KEY does not exist. Create it !!!"
-  sudo mkdir $FOLDER_STORE_SSH_KEY
-  sudo ssh-keygen -f $PATH_KEY  -t ed25519 -b 4096 -N '' # -N '' mean not enter passphrase
-  sudo chgrp -R $USER $FOLDER_STORE_SSH_KEY
-  sudo chgrp -R $USER $PATH_KEY
-  sudo chgrp -R "$USER $PATH_KEY.pub"
-  sudo chown -R $USER:$USER $PATH_KEY
-  sudo chown -R $USER:$USER "$PATH_KEY.pub"
-  sudo chmod 600 $PATH_KEY
+	 echo "################################### $FOLDER_STORE_SSH_KEY does not exist. Create it !!!"
+	 sudo mkdir $FOLDER_STORE_SSH_KEY
+fi
+
+# we do not setup multi key for the same host name
+if ! sudo grep -q "$REMOTE_HOST_NAME" $HOME/.ssh/config; then 
+	if [[ -n "$CUSTOM_KEY_PATH" && -n "$CUSTOM_KEY_NAME" ]]; then
+		echo "exist custom ssh key path: $CUSTOM_KEY_PATH, key name: $CUSTOM_KEY_NAME"
+		#### copy a file name
+		cp "$CUSTOM_KEY_PATH/$CUSTOM_KEY_NAME" "$FOLDER_STORE_SSH_KEY/$FILE_NAME"
+		cp "$CUSTOM_KEY_PATH/$CUSTOM_KEY_NAME.pub" "$FOLDER_STORE_SSH_KEY/$FILE_NAME.pub"
+	else
+		echo "Not exist custom sh key, create it."
+		sudo ssh-keygen -f $PATH_KEY  -t ed25519 -b 4096 -N '' # -N '' mean not enter passphrase
+	fi
+
+	echo "Setup permission for ssh key."
+
+	sudo chgrp -R $USER $FOLDER_STORE_SSH_KEY
+	sudo chgrp -R $USER $PATH_KEY
+	sudo chgrp -R $USER "$PATH_KEY.pub"
+	sudo chown -R $USER:$USER $PATH_KEY
+	sudo chown -R $USER:$USER "$PATH_KEY.pub"
+	sudo chmod 600 $PATH_KEY
 fi
 
 ########### add public key to remote server (authorized_keys) under $PATH_KEY folder 
@@ -87,7 +115,7 @@ if ! sudo grep -q "$REMOTE_HOST_NAME" $HOME/.ssh/config; then
 	echo "################################### Random ssh keys was created at path: $PATH_KEY, please remember it."
 	#add jenkins user to group
 	groups
-	#sudo usermod -a -G vienlv jenkins
+	#sudo usermod -a -G vagrant jenkins
 	#sudo chmod g+rw $HOME/.ssh/
 	#sudo chmod g+rw $HOME/.ssh/authorized_keys
 	#sudo chmod g+r $HOME/.ssh/config
@@ -97,7 +125,8 @@ if ! sudo grep -q "$REMOTE_HOST_NAME" $HOME/.ssh/config; then
 	#sudo chgrp -R $USER $PATH_KEY
 	#sudo chmod g+rw $FOLDER_STORE_SSH_KEY
 	#sudo chmod g+rw $PATH_KEY
-	
+else
+	echo "################################### Random ssh keys was existed at path: $PATH_KEY, please remember it."
 fi
 
 unset MY_NAME
@@ -106,3 +135,5 @@ unset REMOTE_USER
 unset FOLDER_STORE_SSH_KEY
 unset FILE_NAME
 unset PATH_KEY
+unset CUSTOM_KEY_PATH
+unset CUSTOM_KEY_NAME

@@ -2,6 +2,10 @@
 
 sudo apt-get update
 
+echo "current user name: $(whoami)"
+echo "print working directory: $pwd"
+echo "current working folder: $HOME"
+
 ##########################
 SSH_TYPE=$(dpkg --list | grep ssh)
 if [[ "$SSH_TYPE" == *"openssh-server"* ]]; then
@@ -32,7 +36,6 @@ fi
 echo "######################### storage my name to file $HOME/storageName.txt"
 sudo touch $HOME/storageName.txt
 sudo echo "$MY_NAME" | sudo tee -a $HOME/storageName.txt > /dev/null
-unset MY_NAME
 
 if [ -e $HOME/sudoers.bak ]; then
     echo "######################### file $HOME/sudoers.bak is existed"
@@ -93,3 +96,20 @@ sudo sed -i -E "s|#?PasswordAuthentication.*|PasswordAuthentication no|g" /etc/s
 sudo sed -i -E "s|#?PubkeyAuthentication.*|PubkeyAuthentication yes|g" /etc/ssh/sshd_config
 
 sudo systemctl restart sshd
+
+echo "Add ssh key public to ssh server if exist."
+SSH_PUBLIC_KEY=""
+if [ "$2" ]; then
+ SSH_PUBLIC_KEY="$2"
+fi
+
+if [[ -n "$SSH_PUBLIC_KEY" ]]; then
+    echo "Public key: $SSH_PUBLIC_KEY, add to $HOME/.ssh/authorized_keys folder."
+	echo "$SSH_PUBLIC_KEY" >> "$HOME/.ssh/authorized_keys"
+	sudo systemctl restart sshd
+else
+    echo "The variable SSH_PUBLIC_KEY=$SSH_PUBLIC_KEY is null or empty. do nothing"
+fi
+
+unset MY_NAME
+unset SSH_PUBLIC_KEY

@@ -12,6 +12,8 @@
 refer:
  https://developer.hashicorp.com/vagrant/docs/provisioning
  
+ https://developer.hashicorp.com/vagrant/docs/networking/public_network
+ 
  https://stackoverflow.com/questions/30075461/how-do-i-add-my-own-public-key-to-vagrant-vm
 
 	config.vm.provision "shell" do |s|
@@ -48,19 +50,55 @@ C:\Users\Lenovo\OneDrive\Desktop\Techical\Vagrant\ssh-key\id_rsa
 	
 "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe"  startvm a6b4703a-f207-4727-9abb-d43f8c5ebab5 --type emergencystop
 
+
+
+*) Vagrant boxes
+Boxes are the package format for Vagrant environments. You specify a box environment and operating configurations in your Vagrantfile. 
+You can use a box on any supported platform to bring up identical working environments. 
+To enable teams to use and manage the same boxes, versions are supported.
+
+*) Vagrantfile
+The primary function of the Vagrantfile is to describe the type of machine required for a project, and how to configure and provision these machines. 
+Vagrantfiles are called Vagrantfiles because the actual literal filename for the file is Vagrantfile (casing does not matter unless your file system is running in a strict case sensitive mode).
+
 commands:
 
 	set VAGRANT_PREFER_SYSTEM_BIN=0
 
+    vagrant up --provision
+	
 	vagrant ssh --debug
 	
-	vagrant halt
+	vagrant ssh <vm define name ex: ansibleHost>
 	
-	vagrant reload --provision
+	vagrant halt [name|id]
+	  - This command shuts down the running machine Vagrant is managing.
+		Vagrant will first attempt to gracefully shut down the machine by running the guest OS shutdown mechanism. 
+		If this fails, or if the --force flag is specified, 
+		Vagrant will effectively just shut off power to the machine.
+	
+	vagrant reload [name|id] --provision
+	 - This command is usually required for changes made in the Vagrantfile to take effect. 
+	   After making any modifications to the Vagrantfile, a reload should be called.
 	
 	vagrant global-status
+	   - This command will tell you the state of all active Vagrant environments on the system for the currently logged in user.
 	
-	vagrant ssh-config
+	vagrant box list
+	
+	vagrant ssh-config [name|id]
+		- This will output valid configuration for an SSH config file to SSH into the running 
+		  Vagrant machine from ssh directly (instead of using vagrant ssh).
+	
+	vagrant destroy [name|id]
+	   - This command stops the running machine Vagrant is managing and destroys all resources that were created during the machine creation process. 
+	     After running this command, your computer should be left at a clean state, as if you never created the guest machine in the first place.
 	
 	ssh-keygen -o -t rsa -C "phamvanlinh20111993@gmail.com"
 	
+	vagrant box prune 
+		- This command removes old versions of installed boxes. If the box is currently in use vagrant will ask for confirmation.
+	
+	vagrant box remove NAME
+		- This command removes a box from Vagrant that matches the given name.
+		- If a box has multiple providers, the exact provider must be specified with the --provider flag. If a box has multiple versions, you can select what versions to delete with the --box-version flag or remove all versions with the --all flag.

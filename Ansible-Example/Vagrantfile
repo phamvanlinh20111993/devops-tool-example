@@ -24,9 +24,12 @@ Vagrant.configure("2") do |config|
 	
 	ansibleHost.ssh.username="vagrant"
 	
-	ansibleHost.vm.network "public_network"
+	# auto bridge, the same network with host, check your host ip list then assign a static ip without in the list. 
+	# https://developer.hashicorp.com/vagrant/docs/networking/public_network
+	# check list ip in host: arp -a
+	ansibleHost.vm.network "public_network", ip: "192.168.1.10", use_dhcp_assigned_default_route: true
 	
-	ansibleHost.vm.synced_folder "C:/Users/Lenovo/OneDrive/Desktop/Techical/Ansible/share-folder", "/home/share-folder"
+	ansibleHost.vm.synced_folder "C:/Users/Lenovo/OneDrive/Desktop/Techical/devops-tool-example/Ansible-Example/share-folder", "/home/share-folder"
 	
 	ansibleHost.vm.provision "shell" do |s| 
 		s.inline = <<-SHELL
@@ -43,7 +46,7 @@ Vagrant.configure("2") do |config|
 			
 			chmod+x /home/share-folder/scripts/ssh_script_client_config_ubuntu18.04.sh
 			
-			/home/share-folder/scripts/ssh_script_client_config_ubuntu18.04.sh localhost vagrant
+			/home/share-folder/scripts/ssh_script_client_config_ubuntu18.04.sh 192.168.1.11 root /home/share-folder/ssh-keys/ ansible-key
 		SHELL
     end
 	
@@ -72,13 +75,24 @@ Vagrant.configure("2") do |config|
 	
 	ansibleSlave.ssh.username="vagrant"
 	
-	ansibleSlave.vm.network "public_network"
+	ansibleSlave.vm.network "public_network", ip: "192.168.1.11", use_dhcp_assigned_default_route: true
 	
-	ansibleSlave.vm.synced_folder "C:/Users/Lenovo/OneDrive/Desktop/Techical/Ansible/share-folder", "/home/share-folder"
+	ansibleSlave.vm.synced_folder "C:/Users/Lenovo/OneDrive/Desktop/Techical/devops-tool-example/Ansible-Example/share-folder", "/home/share-folder"
 	
 	ansibleSlave.vm.provision "shell" do |s| 
 		s.inline = <<-SHELL
 			echo "######################### this is ansible slave manager"
+			
+			chmod+x /home/share-folder/scripts/ssh_script_server_config_ubuntu18.04.sh
+			
+			MY_NAME=$(whoami)
+			
+			file_path="/home/share-folder/ssh-keys/ansible-key.pub"
+			# file_content="$(< $file_path)"
+			file_content="$(cat $file_path)"
+			echo "file key content: $file_content"
+			
+			/home/share-folder/scripts/ssh_script_server_config_ubuntu18.04.sh $MY_NAME "$file_content"
 		SHELL
     end
 	
@@ -107,13 +121,26 @@ Vagrant.configure("2") do |config|
 	
 	ansibleSlave1.ssh.username="vagrant"
 	
-	ansibleSlave1.vm.network "public_network"
+	ansibleSlave1.vm.network "public_network", ip: "192.168.1.12", use_dhcp_assigned_default_route: true
 	
-	ansibleSlave1.vm.synced_folder "C:/Users/Lenovo/OneDrive/Desktop/Techical/Ansible/share-folder", "/home/share-folder"
+	ansibleSlave1.vm.synced_folder "C:/Users/Lenovo/OneDrive/Desktop/Techical/devops-tool-example/Ansible-Example/share-folder", "/home/share-folder"
 	
 	ansibleSlave1.vm.provision "shell" do |s| 
 		s.inline = <<-SHELL
 			echo "######################### this is ansible slave1 manager"
+			
+			chmod+x /home/share-folder/scripts/ssh_script_server_config_ubuntu18.04.sh
+			
+			MY_NAME=$(whoami)
+			
+			file_path="/home/share-folder/ssh-keys/ansible-key.pub"
+			# file_content="$(< $file_path)"
+			file_content="$(cat $file_path)"
+			
+			echo "file key content: $file_content"
+			
+			/home/share-folder/scripts/ssh_script_server_config_ubuntu18.04.sh $MY_NAME "$file_content"
+			
 		SHELL
     end
 	
