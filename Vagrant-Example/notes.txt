@@ -51,6 +51,8 @@ C:\Users\Lenovo\OneDrive\Desktop\Techical\Vagrant\ssh-key\id_rsa
 "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe"  startvm a6b4703a-f207-4727-9abb-d43f8c5ebab5 --type emergencystop
 
 
+- must run vagrant in the folder contain Vagrant file "Vagrantfile". It is very basic understanding how Vagrant work.
+
 
 *) Vagrant boxes
 Boxes are the package format for Vagrant environments. You specify a box environment and operating configurations in your Vagrantfile. 
