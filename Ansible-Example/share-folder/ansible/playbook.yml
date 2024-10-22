@@ -1,0 +1,18 @@
+
+---
+- name: Install ansibleSlave
+  hosts: ansibleSlave
+  remote_user: vagrant
+  
+  tasks:
+    - name: Install docker
+      ansible.builtin.shell:
+    
+  
+  
+- name: Install ansibleSlave1
+  hosts: ansibleSlave1
+  remote_user: root
+  
+  tasks:
+    

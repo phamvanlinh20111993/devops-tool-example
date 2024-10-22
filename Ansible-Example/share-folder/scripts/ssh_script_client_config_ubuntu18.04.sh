@@ -63,8 +63,26 @@ if [ "$4" ]; then
  CUSTOM_KEY_NAME=$4
 fi
 
-FOLDER_STORE_SSH_KEY="$HOME/.ssh/remote-host-key"
 
+#/bin/bash
+if [ $(id -u) -eq 0 ] || [ $USER == root ] || [ $REMOTE_USER == root ]; then
+  echo "This user is root user, do nothing"
+else 
+	if [ $REMOTE_USER != root ]; then
+		id -u $REMOTE_USER &>/dev/null || useradd $REMOTE_USER -d /home/$REMOTE_USER
+		# Set ownership of the home directory to the new user
+        chown -R $REMOTE_USER:$REMOTE_USER /home/$REMOTE_USER
+		
+		 # Switch to the new user
+        echo "Switching to user '$REMOTE_USER'..."
+        su - $REMOTE_USER
+		echo "User '$REMOTE_USER' created with home directory at '/home/$REMOTE_USER'."
+		echo "Current user: $(whoami) $USER"
+	fi
+fi
+
+FOLDER_STORE_SSH_KEY="$HOME/.ssh/remote-host-key"
+# custom a random file name
 FILE_NAME=$(echo $RANDOM | md5sum | head -c 20)
 
 

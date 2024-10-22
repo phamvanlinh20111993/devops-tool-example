@@ -9,7 +9,7 @@ echo "current working folder: $HOME"
 ##########################
 SSH_TYPE=$(dpkg --list | grep ssh)
 if [[ "$SSH_TYPE" == *"openssh-server"* ]]; then
-	echo "################################# ssh server was installed ##############################"
+	echo "################################# ssh server was installed, check version ##############################"
     ssh -V
 else 	
     echo "################################### installing ssh-server #################################################################"
@@ -27,15 +27,15 @@ unset SSH_TYPE
 
 ############################
 
-MY_NAME=$(whoami)
+CURRENT_USER_NAME=$(whoami)
 
 if [ "$1" ]; then
- MY_NAME=$1
+    CURRENT_USER_NAME=$1
 fi
 
 echo "######################### storage my name to file $HOME/storageName.txt"
 sudo touch $HOME/storageName.txt
-sudo echo "$MY_NAME" | sudo tee -a $HOME/storageName.txt > /dev/null
+sudo echo "$CURRENT_USER_NAME" | sudo tee -a $HOME/storageName.txt > /dev/null
 
 if [ -e $HOME/sudoers.bak ]; then
     echo "######################### file $HOME/sudoers.bak is existed"
@@ -51,7 +51,7 @@ else
 	echo "######################### modify /etc/sudoers, allow $userName can do anything in system. $userName ALL=(ALL) NOPASSWD:ALL"
 	File=/etc/sudoers
 	if ! sudo grep -q "$userName ALL=(ALL)" "$File" ;then
-	  # sudo echo $MY_NAME ALL = NOPASSWD: /bin/systemctl restart httpd.service, /bin/kill >> /etc/sudoers
+	  # sudo echo $CURRENT_USER_NAME ALL = NOPASSWD: /bin/systemctl restart httpd.service, /bin/kill >> /etc/sudoers
 	  # careful with that command
 	  sudo echo "#config allow for $userName user" | sudo tee -a /etc/sudoers > /dev/null
 	  sudo echo "$userName ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers > /dev/null
@@ -111,5 +111,5 @@ else
     echo "The variable SSH_PUBLIC_KEY=$SSH_PUBLIC_KEY is null or empty. do nothing"
 fi
 
-unset MY_NAME
+unset CURRENT_USER_NAME
 unset SSH_PUBLIC_KEY
