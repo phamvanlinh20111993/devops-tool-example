@@ -42,18 +42,24 @@ Vagrant.configure("2") do |config|
 			sudo apt update
 			sudo apt install software-properties-common
 			sudo add-apt-repository --yes --update ppa:ansible/ansible
-			sudo apt install ansible
+			
+			# https://stackoverflow.com/questions/7642674/how-do-i-script-a-yes-response-for-installing-programs
+			yes Y | sudo apt install ansible
+			
+            sudo apt install ansible-lint
 			
 			ansible --version
 			
-			chmod+x /home/share-folder/scripts/ssh_script_client_config_ubuntu18.04.sh
+			chmod +x /home/share-folder/scripts/ssh_script_client_config_ubuntu18.04.sh
 			
 			#config for the first slave
 			/home/share-folder/scripts/ssh_script_client_config_ubuntu18.04.sh 192.168.1.11 vagrant /home/share-folder/ssh-keys/ ansible-key
 			
 			#config for the second slave
-			/home/share-folder/scripts/ssh_script_client_config_ubuntu18.04.sh 192.168.1.12 root /home/share-folder/ssh-keys/ ansible-key
+			/home/share-folder/scripts/ssh_script_client_config_ubuntu18.04.sh 192.168.1.12 vagrant /home/share-folder/ssh-keys/ ansible-key
 			
+			# append this content to the end of a file
+			sudo cat /home/share-folder/ansible/hosts >> /etc/ansible/hosts
 		SHELL
     end
 	
@@ -90,9 +96,11 @@ Vagrant.configure("2") do |config|
 		s.inline = <<-SHELL
 			echo "######################### this is ansible slave manager"
 			
-			chmod+x /home/share-folder/scripts/ssh_script_server_config_ubuntu18.04.sh
+			chmod +x /home/share-folder/scripts/ssh_script_server_config_ubuntu18.04.sh
 			
-			MY_NAME=$(whoami)
+			#MY_NAME=$(whoami)
+			
+			MY_NAME=vagrant
 			
 			file_path="/home/share-folder/ssh-keys/ansible-key.pub"
 			# file_content="$(< $file_path)"
@@ -136,9 +144,10 @@ Vagrant.configure("2") do |config|
 		s.inline = <<-SHELL
 			echo "######################### this is ansible slave1 manager"
 			
-			chmod+x /home/share-folder/scripts/ssh_script_server_config_ubuntu18.04.sh
+			chmod +x /home/share-folder/scripts/ssh_script_server_config_ubuntu18.04.sh
 			
-			MY_NAME=$(whoami)
+			#MY_NAME=$(whoami)
+			MY_NAME=vagrant
 			
 			file_path="/home/share-folder/ssh-keys/ansible-key.pub"
 			# file_content="$(< $file_path)"

@@ -5,4 +5,4 @@ ansible.example.com
 192.168.1.11
 
 [ansibleSlave1]
-192.168.1.11	
+192.168.1.12	

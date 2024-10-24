@@ -27,7 +27,10 @@ unset SSH_TYPE
 
 ############################
 
-CURRENT_USER_NAME=$(whoami)
+CURRENT_USER_NAME="$(whoami)"
+#CURRENT_USER_NAME="$USER"
+
+CURRENT_USER_HOME_DIR="$HOME"
 
 if [ "$1" ]; then
     CURRENT_USER_NAME=$1
@@ -60,35 +63,48 @@ else
 	unset userName
 fi
 
-
-if [ ! -d $HOME/.ssh ]; then
-  echo "$HOME/.ssh does not exist. Create it"
-  mkdir $HOME/.ssh
+if [ $CURRENT_USER_NAME != root ] && [ $(id -u) -eq 0 ] ; then
+	echo "Setting up new user..., password is the same with the username"
+	id -u "$CURRENT_USER_NAME" &>/dev/null || useradd -m -d "/home/$CURRENT_USER_NAME" "$CURRENT_USER_NAME"
+		
+	echo "$CURRENT_USER_NAME:$CURRENT_USER_NAME" | sudo chpasswd
+	# Set ownership of the home directory and subfolder to the new user
+	chown -R $CURRENT_USER_NAME:$CURRENT_USER_NAME /home/$CURRENT_USER_NAME
+		
+	echo "User '$CURRENT_USER_NAME' created with home directory at '/home/$CURRENT_USER_NAME'."
+		
+	CURRENT_USER_HOME_DIR=/home/$CURRENT_USER_NAME
 fi
 
-if [ ! -e $HOME/.ssh/config ]; then
-	 echo "######################### $HOME/.ssh/config does not exist. Create it"
-	 sudo touch $HOME/.ssh/config
-	 sudo chown -R $USER:$USER /home/$USER/.ssh/config 
-	 sudo chmod 600 $HOME/.ssh/config
+if [ ! -d $CURRENT_USER_HOME_DIR/.ssh ]; then
+  echo "$CURRENT_USER_HOME_DIR/.ssh does not exist. Create it"
+  mkdir $CURRENT_USER_HOME_DIR/.ssh
 fi
 
-if [ ! -e $HOME/.ssh/known_hosts ]; then
-	 echo "######################### $HOME/.ssh/known_hosts does not exist. Create it"
-	 sudo touch $HOME/.ssh/known_hosts
-	 sudo chown -v $USER $HOME/.ssh/known_hosts
-	 sudo chmod 600 $HOME/.ssh/known_hosts
+if [ ! -e $CURRENT_USER_HOME_DIR/.ssh/config ]; then
+	 echo "######################### $CURRENT_USER_HOME_DIR/.ssh/config does not exist. Create it"
+	 sudo touch $CURRENT_USER_HOME_DIR/.ssh/config
+	 sudo chown -R $CURRENT_USER_NAME:$CURRENT_USER_NAME /home/$CURRENT_USER_NAME/.ssh/config 
+	 sudo chmod 600 $CURRENT_USER_HOME_DIR/.ssh/config
+fi
+
+if [ ! -e $CURRENT_USER_HOME_DIR/.ssh/known_hosts ]; then
+	 echo "######################### $CURRENT_USER_HOME_DIR/.ssh/known_hosts does not exist. Create it"
+	 sudo touch $CURRENT_USER_HOME_DIR/.ssh/known_hosts
+	 sudo chown -v $CURRENT_USER_NAME $CURRENT_USER_HOME_DIR/.ssh/known_hosts
+	 sudo chmod 600 $CURRENT_USER_HOME_DIR/.ssh/known_hosts
 fi
 
 ##############################
-if [ -e $HOME/.ssh/authorized_keys ]; then
-	echo "######################### authorized_keys is existed. Do nothing";
+if [ -e $CURRENT_USER_HOME_DIR/.ssh/authorized_keys ]; then
+	echo "######################### authorized_keys is existed. Do nothing"
 else
-	#sudo cat id_rsa.pub>>/home/$USER/.ssh/authorized_keys
+	#sudo cat id_rsa.pub>>/home/$CURRENT_USER_NAME/.ssh/authorized_keys
 	echo "######################### authorized_keys does not existed. Create it";
-	sudo touch authorized_keys
-	sudo chmod 700 $HOME/.ssh && chmod 600 $HOME/.ssh/authorized_keys
-	sudo chown -R $USER:$USER $HOME/.ssh
+	# sudo touch authorized_keys
+	sudo touch $CURRENT_USER_HOME_DIR/.ssh/authorized_keys
+	sudo chmod 700 $CURRENT_USER_HOME_DIR/.ssh && chmod 600 $CURRENT_USER_HOME_DIR/.ssh/authorized_keys
+	sudo chown -R $CURRENT_USER_NAME:$CURRENT_USER_NAME $CURRENT_USER_HOME_DIR/.ssh
 fi
 
 echo "######################### Config /etc/ssh/sshd_config to allow ssh withou password, using public key";
@@ -104,8 +120,8 @@ if [ "$2" ]; then
 fi
 
 if [[ -n "$SSH_PUBLIC_KEY" ]]; then
-    echo "Public key: $SSH_PUBLIC_KEY, add to $HOME/.ssh/authorized_keys folder."
-	echo "$SSH_PUBLIC_KEY" >> "$HOME/.ssh/authorized_keys"
+    echo "Public key: $SSH_PUBLIC_KEY, add to $CURRENT_USER_HOME_DIR/.ssh/authorized_keys folder."
+	echo "$SSH_PUBLIC_KEY" >> "$CURRENT_USER_HOME_DIR/.ssh/authorized_keys"
 	sudo systemctl restart sshd
 else
     echo "The variable SSH_PUBLIC_KEY=$SSH_PUBLIC_KEY is null or empty. do nothing"
@@ -113,3 +129,4 @@ fi
 
 unset CURRENT_USER_NAME
 unset SSH_PUBLIC_KEY
+unset CURRENT_USER_HOME_DIR

@@ -10,6 +10,12 @@
  
 
 refer:
+
+ https://stackoverflow.com/questions/53885068/how-to-switch-from-user-1-to-user-2-and-run-some-commands-in-linux
+ sudo -u user2 whoami
+ 
+ sudo -u linhpv ssh linhpv@192.168.1.11
+ 
  https://developer.hashicorp.com/vagrant/docs/provisioning
  
  https://developer.hashicorp.com/vagrant/docs/networking/public_network

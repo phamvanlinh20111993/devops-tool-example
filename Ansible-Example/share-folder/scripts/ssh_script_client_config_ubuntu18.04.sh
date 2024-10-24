@@ -24,25 +24,6 @@ echo "current user name: $(whoami)"
 echo "print working directory: $pwd"
 echo "current working folder: $HOME"
 
-if [ ! -d $HOME/.ssh ]; then
-  echo "folder $HOME/.ssh does not exist. Created it !!!"
-  mkdir $HOME/.ssh
-fi
-
-if [ ! -e $HOME/.ssh/config ]; then
-	 echo "################################### file $HOME/.ssh/config does not exist. Created it !!!"
-	 sudo touch $HOME/.ssh/config
-	 sudo chown -R $USER:$USER $HOME/.ssh/config 
-	 sudo chmod 600 $HOME/.ssh/config
-fi
-
-if [ ! -e $HOME/.ssh/known_hosts ]; then
-	 echo "################################### file $HOME/.ssh/known_hosts does not exist. Created it !!!"
-	 sudo touch $HOME/.ssh/known_hosts
-	 #sudo chgrp -R $USER $HOME/.ssh/known_hosts
-	 sudo chown -v $USER $HOME/.ssh/known_hosts
-fi
-
 REMOTE_HOST_NAME=34.126.75.224
 if [ "$1" ]; then
   REMOTE_HOST_NAME=$1
@@ -63,25 +44,71 @@ if [ "$4" ]; then
  CUSTOM_KEY_NAME=$4
 fi
 
+CURRENT_USER=$USER
+
+CURRENT_USER_HOME_DIR=$HOME
 
 #/bin/bash
-if [ $(id -u) -eq 0 ] || [ $USER == root ] || [ $REMOTE_USER == root ]; then
-  echo "This user is root user, do nothing"
-else 
-	if [ $REMOTE_USER != root ]; then
-		id -u $REMOTE_USER &>/dev/null || useradd $REMOTE_USER -d /home/$REMOTE_USER
-		# Set ownership of the home directory to the new user
-        chown -R $REMOTE_USER:$REMOTE_USER /home/$REMOTE_USER
+if [ $(id -u) -eq 0 ] || [ $USER == root ] ; then
+
+	if [ $REMOTE_USER == root ] ; then
+	  echo "This setting to root user, we'ver already root user, do nothing"
+	else 
+	    echo "Setting up new user..., password is the same with the username"
+		id -u "$REMOTE_USER" &>/dev/null || useradd -m -d "/home/$REMOTE_USER" "$REMOTE_USER"
 		
-		 # Switch to the new user
-        echo "Switching to user '$REMOTE_USER'..."
-        su - $REMOTE_USER
+		echo "$REMOTE_USER:$REMOTE_USER" | sudo chpasswd
+		# Set ownership of the home directory and subfolder to the new user
+		chown -R $REMOTE_USER:$REMOTE_USER /home/$REMOTE_USER
+		
 		echo "User '$REMOTE_USER' created with home directory at '/home/$REMOTE_USER'."
+		
+		CURRENT_USER=$REMOTE_USER
+		CURRENT_USER_HOME_DIR=/home/$REMOTE_USER
+		File=/etc/sudoers
+		#allow root and vagrant user can switch to $REMOTE_USER without enter password
+		if ! sudo grep -q "$REMOTE_USER ALL=(ALL)" "$File" ; then
+		  # sudo echo $CURRENT_USER_NAME ALL = NOPASSWD: /bin/systemctl restart httpd.service, /bin/kill >> /etc/sudoers
+		  # careful with that command
+		  sudo echo "#config allow 'root' and 'vagrant' user dont need to enter password when switch to $REMOTE_USER user" | sudo tee -a /etc/sudoers > /dev/null
+		  sudo echo "root ALL=($REMOTE_USER) NOPASSWD: ALL" | sudo tee -a /etc/sudoers > /dev/null
+		  sudo echo "vagrant ALL=($REMOTE_USER) NOPASSWD: ALL" | sudo tee -a /etc/sudoers > /dev/null
+		  
+		  sudo echo "#allow $REMOTE_USER execute any comment without enter password" | sudo tee -a /etc/sudoers > /dev/null
+	      sudo echo "$REMOTE_USER ALL=(ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers > /dev/null
+		fi
+		unset File
+			
+		# Switch to the new user
+		#echo "Switching to user '$REMOTE_USER'..."
+		# su - $REMOTE_USER
 		echo "Current user: $(whoami) $USER"
 	fi
+else 
+	 echo "Please use the administrator user to setting."
 fi
 
-FOLDER_STORE_SSH_KEY="$HOME/.ssh/remote-host-key"
+if [ ! -d $CURRENT_USER_HOME_DIR/.ssh ]; then
+  echo "folder $CURRENT_USER_HOME_DIR/.ssh does not exist. Created it !!!"
+  mkdir $CURRENT_USER_HOME_DIR/.ssh
+  chmod 700 ~/.ssh
+fi
+
+if [ ! -e $CURRENT_USER_HOME_DIR/.ssh/config ]; then
+	 echo "################################### file $CURRENT_USER_HOME_DIR/.ssh/config does not exist. Created it !!!"
+	 sudo touch $CURRENT_USER_HOME_DIR/.ssh/config
+	 sudo chown -R $CURRENT_USER:$CURRENT_USER $CURRENT_USER_HOME_DIR/.ssh/config 
+	 sudo chmod 600 $CURRENT_USER_HOME_DIR/.ssh/config
+fi
+
+if [ ! -e $CURRENT_USER_HOME_DIR/.ssh/known_hosts ]; then
+	 echo "################################### file $CURRENT_USER_HOME_DIR/.ssh/known_hosts does not exist. Created it !!!"
+	 sudo touch $CURRENT_USER_HOME_DIR/.ssh/known_hosts
+	 #sudo chgrp -R $CURRENT_USER $CURRENT_USER_HOME_DIR/.ssh/known_hosts
+	 sudo chown -v $CURRENT_USER $CURRENT_USER_HOME_DIR/.ssh/known_hosts
+fi
+
+FOLDER_STORE_SSH_KEY="$CURRENT_USER_HOME_DIR/.ssh/remote-host-key"
 # custom a random file name
 FILE_NAME=$(echo $RANDOM | md5sum | head -c 20)
 
@@ -93,7 +120,7 @@ if [ ! -d $FOLDER_STORE_SSH_KEY ]; then
 fi
 
 # we do not setup multi key for the same host name
-if ! sudo grep -q "$REMOTE_HOST_NAME" $HOME/.ssh/config; then 
+if ! sudo grep -q "$REMOTE_HOST_NAME" $CURRENT_USER_HOME_DIR/.ssh/config; then 
 	if [[ -n "$CUSTOM_KEY_PATH" && -n "$CUSTOM_KEY_NAME" ]]; then
 		echo "exist custom ssh key path: $CUSTOM_KEY_PATH, key name: $CUSTOM_KEY_NAME"
 		#### copy a file name
@@ -106,38 +133,45 @@ if ! sudo grep -q "$REMOTE_HOST_NAME" $HOME/.ssh/config; then
 
 	echo "Setup permission for ssh key."
 
-	sudo chgrp -R $USER $FOLDER_STORE_SSH_KEY
-	sudo chgrp -R $USER $PATH_KEY
-	sudo chgrp -R $USER "$PATH_KEY.pub"
-	sudo chown -R $USER:$USER $PATH_KEY
-	sudo chown -R $USER:$USER "$PATH_KEY.pub"
+	sudo chgrp -R $CURRENT_USER $FOLDER_STORE_SSH_KEY
+	sudo chgrp -R $CURRENT_USER $PATH_KEY
+	sudo chgrp -R $CURRENT_USER "$PATH_KEY.pub"
+	sudo chown -R $CURRENT_USER:$CURRENT_USER $PATH_KEY
+	sudo chown -R $CURRENT_USER:$CURRENT_USER "$PATH_KEY.pub"
 	sudo chmod 600 $PATH_KEY
 fi
 
 ########### add public key to remote server (authorized_keys) under $PATH_KEY folder 
 
-if ! sudo grep -q "$REMOTE_HOST_NAME" $HOME/.ssh/config; then 
-	sudo echo "# ####zenkins server config to build host###" | sudo tee -a $HOME/.ssh/config > /dev/null
-	sudo echo "# try to ssh $REMOTE_USER@$REMOTE_HOST_NAME" | sudo tee -a $HOME/.ssh/config > /dev/null
-	sudo echo "Host $REMOTE_HOST_NAME" | sudo tee -a $HOME/.ssh/config > /dev/null
-	sudo echo "     HostName $REMOTE_HOST_NAME" | sudo tee -a $HOME/.ssh/config > /dev/null
-	sudo echo "     User $REMOTE_USER" | sudo tee -a $HOME/.ssh/config > /dev/null
-	sudo echo "     PreferredAuthentications publickey" | sudo tee -a $HOME/.ssh/config > /dev/null
-	sudo echo "     IdentitiesOnly yes" | sudo tee -a $HOME/.ssh/config > /dev/null
-	sudo echo "     IdentityFile $PATH_KEY" | sudo tee -a $HOME/.ssh/config > /dev/null
-	sudo echo "     UserKnownHostsFile $HOME/.ssh/known_hosts" | sudo tee -a $HOME/.ssh/config > /dev/null
-	sudo echo "     Port 22" | sudo tee -a $HOME/.ssh/config > /dev/null
+if ! sudo grep -q "$REMOTE_HOST_NAME" $CURRENT_USER_HOME_DIR/.ssh/config; then 
+	sudo echo "# ####zenkins server config to build host###" | sudo tee -a $CURRENT_USER_HOME_DIR/.ssh/config > /dev/null
+	sudo echo "# try to ssh $REMOTE_USER@$REMOTE_HOST_NAME" | sudo tee -a $CURRENT_USER_HOME_DIR/.ssh/config > /dev/null
+	sudo echo "Host $REMOTE_HOST_NAME" | sudo tee -a $CURRENT_USER_HOME_DIR/.ssh/config > /dev/null
+	sudo echo "     HostName $REMOTE_HOST_NAME" | sudo tee -a $CURRENT_USER_HOME_DIR/.ssh/config > /dev/null
+	sudo echo "     User $REMOTE_USER" | sudo tee -a $CURRENT_USER_HOME_DIR/.ssh/config > /dev/null
+	sudo echo "     PreferredAuthentications publickey" | sudo tee -a $CURRENT_USER_HOME_DIR/.ssh/config > /dev/null
+	sudo echo "     IdentitiesOnly yes" | sudo tee -a $CURRENT_USER_HOME_DIR/.ssh/config > /dev/null
+	sudo echo "     IdentityFile $PATH_KEY" | sudo tee -a $CURRENT_USER_HOME_DIR/.ssh/config > /dev/null
+	sudo echo "     UserKnownHostsFile $CURRENT_USER_HOME_DIR/.ssh/known_hosts" | sudo tee -a $CURRENT_USER_HOME_DIR/.ssh/config > /dev/null
+	sudo echo "     Port 22" | sudo tee -a $CURRENT_USER_HOME_DIR/.ssh/config > /dev/null
 	eval $(ssh-agent -s)
-	sudo ssh-keyscan -H $REMOTE_HOST_NAME >> $HOME/.ssh/known_hosts
+	sudo ssh-keyscan -H $REMOTE_HOST_NAME >> $CURRENT_USER_HOME_DIR/.ssh/known_hosts
     
+	if [ $CURRENT_USER != root ] ; then
+		# Set ownership of the home directory and subfolder to the new user
+		chown -R $CURRENT_USER:$CURRENT_USER /home/$CURRENT_USER
+	fi
+		
 	echo "################################### Random ssh keys was created at path: $PATH_KEY, please remember it."
+	
+	
 	#add jenkins user to group
 	groups
 	#sudo usermod -a -G vagrant jenkins
-	#sudo chmod g+rw $HOME/.ssh/
-	#sudo chmod g+rw $HOME/.ssh/authorized_keys
-	#sudo chmod g+r $HOME/.ssh/config
-	#sudo chmod g+rw $HOME/.ssh/known_hosts
+	#sudo chmod g+rw $CURRENT_USER_HOME_DIR/.ssh/
+	#sudo chmod g+rw $CURRENT_USER_HOME_DIR/.ssh/authorized_keys
+	#sudo chmod g+r $CURRENT_USER_HOME_DIR/.ssh/config
+	#sudo chmod g+rw $CURRENT_USER_HOME_DIR/.ssh/known_hosts
 	
 	#sudo chgrp -R $USER $FOLDER_STORE_SSH_KEY
 	#sudo chgrp -R $USER $PATH_KEY
@@ -155,3 +189,5 @@ unset FILE_NAME
 unset PATH_KEY
 unset CUSTOM_KEY_PATH
 unset CUSTOM_KEY_NAME
+unset CURRENT_USER_HOME_DIR
+unset CURRENT_USER

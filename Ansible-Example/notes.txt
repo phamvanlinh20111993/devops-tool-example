@@ -1,0 +1,38 @@
+
+
+Ansible: 
+
+- check installed collection list
+	ansible-galaxy list 	
+	
+- install a collection like systemd: https://docs.ansible.com/ansible/latest/collections/ansible/builtin/systemd_service_module.html	
+
+- ansible check collection builtin by community: https://galaxy.ansible.com/ui/
+
+
+
+- To run a playbook in check mode, you can pass the -C or --check flag to the ansible-playbook command:
+	ansible-playbook --check playbook.yaml
+	
+- Run a playbook: 
+	ansible-playbook --verbose playbook.yml 
+	 ANSIBLE_ENABLE_TASK_DEBUGGER=True ansible-playbook -v playbook1.yml
+	
+- Check playbook before run: 
+	ansible-lint playbook.yml
+	
+- Import another playbook to current playbook: https://docs.ansible.com/ansible/latest/collections/ansible/builtin/import_playbook_module.html
+	
+- Enable log tassk in:  /etc/ansible/ansible.cfg, read the instruction and then do your wish
+     https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_debugger.html#playbook-debugger
+
+- Task keyword in playbook: https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html#task
+
+
+
+
+
+
+
+Refer:
+	
