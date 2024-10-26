@@ -12,13 +12,14 @@ Ansible:
 - ansible check collection builtin by community: https://galaxy.ansible.com/ui/
 
 
+- reuse task, playbook, role : https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse.html
 
 - To run a playbook in check mode, you can pass the -C or --check flag to the ansible-playbook command:
-	ansible-playbook --check playbook.yaml
+	ansible-playbook --check playbook.yml
 	
 - Run a playbook: 
 	ansible-playbook --verbose playbook.yml 
-	 ANSIBLE_ENABLE_TASK_DEBUGGER=True ansible-playbook -v playbook1.yml
+	 ANSIBLE_ENABLE_TASK_DEBUGGER=True ansible-playbook -vv playbook.yml
 	
 - Check playbook before run: 
 	ansible-lint playbook.yml
