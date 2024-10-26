@@ -2,6 +2,8 @@
 
 Ansible: 
 
+- check ansible hosts file : /etc/ansible/hosts 
+
 - check installed collection list
 	ansible-galaxy list 	
 	

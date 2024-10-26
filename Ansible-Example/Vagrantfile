@@ -39,6 +39,7 @@ Vagrant.configure("2") do |config|
 			python3 --version
 			python3 -m pip install --user ansible
 			
+			echo "######################### install the ansible"
 			sudo apt update
 			sudo apt install software-properties-common
 			sudo add-apt-repository --yes --update ppa:ansible/ansible
@@ -46,12 +47,15 @@ Vagrant.configure("2") do |config|
 			# https://stackoverflow.com/questions/7642674/how-do-i-script-a-yes-response-for-installing-programs
 			yes Y | sudo apt install ansible
 			
+			echo "######################### install the ansible-lint"
             sudo apt install ansible-lint
 			
+			echo "######################### check ansible version"
 			ansible --version
 			
 			chmod +x /home/share-folder/scripts/ssh_script_client_config_ubuntu18.04.sh
 			
+			echo "######################### config ssh client connect to slaves host"
 			#config for the first slave
 			/home/share-folder/scripts/ssh_script_client_config_ubuntu18.04.sh 192.168.1.11 vagrant /home/share-folder/ssh-keys/ ansible-key
 			

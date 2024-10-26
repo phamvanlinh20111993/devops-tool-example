@@ -17,33 +17,50 @@
     # https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository     
     - name: Set up Docker apt repository
       ansible.builtin.shell: |
-        # Add Docker's official GPG key:
         sudo apt-get update
         sudo apt-get install ca-certificates curl
         sudo install -m 0755 -d /etc/apt/keyrings
         sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
         sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-        # Add the repository to Apt sources:
         echo \
           "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
           $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
           sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
         sudo apt-get update
       args:
-         warn: false  # Suppress warnings for this task
-    - name: Install Docker
-      ansible.builtin.shell: |
-        sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-        sudo docker run hello-world
+         warn: true  # Suppress warnings for this task
          
+    # using shell that not work as expect, the screen not show anything for hours
+    #- name: Install Docker
+    #  ansible.builtin.shell: |
+    #    echo "install docker"
+    #    sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    #    sudo docker run hello-world
+    #  debugger: always   
+      
+    - name: Install Docker
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+        #fail_on_autoremove: yes
+        #install_recommends: no
+        update_cache: true
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-buildx-plugin
+        - docker-compose-plugin
+    #  debugger: always 
+        
     - name: Enable the Docker service
-      ansible.builtin.systemd_service:
+      ansible.builtin.systemd:
         name: docker
         enabled: yes
         
     - name: Start the Docker service
-      ansible.builtin.systemd_service:
+      ansible.builtin.systemd:
         name: docker
         state: started
     #or
@@ -56,7 +73,7 @@
   
 - name: Install ansibleSlave1
   hosts: ansibleSlave1
-  remote_user: root
+  remote_user: vagrant
   
   tasks:
     - name: Uninstall old Docker
@@ -67,33 +84,32 @@
     # https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository     
     - name: Set up Docker apt repository
       ansible.builtin.shell: |
-        # Add Docker's official GPG key:
         sudo apt-get update
         sudo apt-get install ca-certificates curl
         sudo install -m 0755 -d /etc/apt/keyrings
         sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
         sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-        # Add the repository to Apt sources:
+        
         echo \
           "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
           $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
           sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
         sudo apt-get update
       args:
-         warn: false  # Suppress warnings for this task
+         warn: true  # Suppress warnings for this task
+
     - name: Install Docker
       ansible.builtin.shell: |
         sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
         sudo docker run hello-world
-         
+      debugger: always
     - name: Enable the Docker service
-      ansible.builtin.systemd_service:
+      ansible.builtin.systemd:
         name: docker
         enabled: yes
         
     - name: Start the Docker service
-      ansible.builtin.systemd_service:
+      ansible.builtin.systemd:
         name: docker
         state: started
     #or
