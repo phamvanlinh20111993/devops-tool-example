@@ -1,6 +1,30 @@
 
 ---
 
+- name: Check microk8s install or not
+  ansible.builtin.shell: |
+    which microk8s
+  register: isMicrok8sInstall
+  ignore_errors: true  # Continue even if the command fails
+   
+- name: Check MicroK8s is running or not
+  ansible.builtin.command: microk8s status
+  register: microk8sStatus
+  ignore_errors: true
+  when: isMicrok8sInstall.stdout.find('microk8s') != -1 # is contain string microk8s
+  
+- name: Stop microk8s if running
+  ansible.builtin.systemd:
+    name: microk8s
+    state: stopped # "reloaded", "restarted", "started", "stopped"
+  when: microk8sStatus.stdout.find('microk8s') != -1
+  
+- name: Uninstall microk8s
+  ansible.builtin.snap:
+    name: microk8s
+    state: absent
+  when: isMicrok8sInstall.stdout.find('microk8s') != -1
+  
 # https://microk8s.io/docs/getting-started
 - name: Install microk8s
   ansible.builtin.snap:
@@ -8,6 +32,8 @@
     state: present
     channel: 1.31
     classic: yes
+  register: microk8sInstallStatus
+  
  
 - name: Join the groups
   ansible.builtin.shell: |
@@ -16,13 +42,15 @@
     chmod 0700 ~/.kube
     su - $USER
     microk8s status --wait-ready
+  ignore_errors: true
   
 - name: Enable add-ons
   ansible.builtin.shell: |
     microk8s enable dns
     microk8s enable hostpath-storage
     microk8s enable dashboard registry storage ingress
-    
+  ignore_errors: true   
+  
 - name: Setup 
   ansible.builtin.shell: |
     sudo ufw allow in on cni0 && sudo ufw allow out on cni0
@@ -42,13 +70,27 @@
     token=$(sudo microk8s kubectl -n kube-system get secret | grep default-token | cut -d " " -f1)
     sudo microk8s kubectl -n kube-system describe secret $token
     sleep 30
-    
+  ignore_errors: true 
+  register: microk8sSetupStatus  
+  
 - name: Enable the Microk8s service
   ansible.builtin.systemd:
     name: microk8s
     enabled: yes
+  ignore_errors: true
+  register: microk8sEnableStatus 
 
 - name: Start the Microk8s service
   ansible.builtin.systemd:
     name: microk8s
     state: started
+  ignore_errors: true
+  register: microk8sStartStatus
+  
+- name: Show installation result
+  ansible.builtin.debug:
+    msg: 
+        - "Microk8s installation result: {{ microk8sInstallStatus }}"
+        - "Microk8s setup result: {{ microk8sSetupStatus }}"
+        - "Microk8s Enable result: {{ microk8sEnableStatus }}"
+        - "Microk8s Start result: {{ microk8sStartStatus }}"

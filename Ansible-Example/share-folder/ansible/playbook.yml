@@ -7,11 +7,21 @@
   become: yes  # Run tasks with sudo privileges
   vars:
   handlers:
+     
+   - name: Ansible common check
+     import_tasks: task-ansible-common.yml 
+     
    - name: Install docker
      import_tasks: task-docker.yml
      
    - name: Install microk8s
      import_tasks: task-microk8s.yml
+     
+   - name: Install nginx
+     import_tasks: task-nginx.yml
+     
+   - name: Install oracle
+     import_tasks: task-oracle.yml
    
   
 - name: Install ansibleSlave
@@ -19,6 +29,10 @@
   remote_user: vagrant
   
   handlers:
+  
+   - name: Ansible common check
+     import_tasks: task-ansible-common.yml
+     
    - name: Install docker
      import_tasks: task-docker.yml
      

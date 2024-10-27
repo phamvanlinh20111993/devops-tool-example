@@ -1,0 +1,36 @@
+
+---
+
+- name: Check nginx install or not
+  ansible.builtin.shell: |
+    dpkg -l | grep nginx
+  register: isNginxInstall
+  ignore_errors: true # Continue even if the command fails
+  
+
+- name: Check nginx running or not
+  ansible.builtin.command: service nginx status
+  register: isNginxRunning
+  ignore_errors: true # Continue even if the command fails
+
+- name: stop nginx
+  ansible.builtin.service:
+    name: nginx
+    state: stopped
+  when: isNginxRunning.stdout.find('nginx') != -1
+  
+- name: uninstall nginx
+  ansible.builtin.apt: 
+    name: nginx 
+    state: absent
+  when: isNginxInstall.stdout != ""
+
+- name: install nginx
+  ansible.builtin.apt:
+    name: nginx 
+    state: latest
+      
+- name: start nginx
+  ansible.builtin.service:
+    name: nginx
+    state: started

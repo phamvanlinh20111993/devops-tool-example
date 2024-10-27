@@ -1,5 +1,13 @@
 
 ---
+
+
+- name: Check docker install or not
+  ansible.builtin.shell: |
+    which docker
+  register: isDockerInstall
+  ignore_errors: true  # Continue even if the command fails
+
 # 'https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html#ansible-collections-ansible-builtin-apt-module'
 - name: Uninstall old Docker
   ansible.builtin.shell: |

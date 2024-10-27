@@ -11,6 +11,31 @@ Ansible:
 
 - ansible check collection builtin by community: https://galaxy.ansible.com/ui/
 
+- ping to machines were setup in hosts file (the below command assum that we run the command with hosts file in current folder)
+	ansible -i hosts -m ping all
+	
+	ex:
+		ansible.example.com | UNREACHABLE! => {
+			"changed": false,
+			"msg": "Failed to connect to the host via ssh: ssh: Could not resolve hostname ansible.example.com: Name or service not known",
+			"unreachable": true
+		}
+		192.168.1.11 | SUCCESS => {
+			"ansible_facts": {
+				"discovered_interpreter_python": "/usr/bin/python3"
+			},
+			"changed": false,
+			"ping": "pong"
+		}
+		192.168.1.12 | SUCCESS => {
+			"ansible_facts": {
+				"discovered_interpreter_python": "/usr/bin/python3"
+			},
+			"changed": false,
+			"ping": "pong"
+		}
+		
+
 
 - reuse task, playbook, role : https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse.html
 
@@ -18,8 +43,14 @@ Ansible:
 	ansible-playbook --check playbook.yml
 	
 - Run a playbook: 
-	ansible-playbook --verbose playbook.yml 
+
+	 ansible-playbook --verbose playbook.yml 
+	
 	 ANSIBLE_ENABLE_TASK_DEBUGGER=True ansible-playbook -vv playbook.yml
+	 
+  - run playbook with file hosts in current folder, default in /etc/ansible/hosts 
+	 
+	 ANSIBLE_ENABLE_TASK_DEBUGGER=True ansible-playbook -vv playbook.yml -i hosts
 	
 - Check playbook before run: 
 	ansible-lint playbook.yml
@@ -29,13 +60,43 @@ Ansible:
 - Enable log tassk in:  /etc/ansible/ansible.cfg, read the instruction and then do your wish
      https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_debugger.html#playbook-debugger
 
-- Task keyword in playbook: https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html#task
+- Task keyword in playbook: https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html#task 
+	check: ansible <hostname> -m ansible.builtin.setup
+		ex: ansible ansibleSlave -m ansible.builtin.setup
+	output:
+		The authenticity of host '192.168.1.11 (192.168.1.11)' can't be established.
+		ECDSA key fingerprint is SHA256:CEQg8t3upExp6hlcPo9+/O/pdQxvZ8OjN9GHy6PuBWY.
+		Are you sure you want to continue connecting (yes/no)? yes
+		192.168.1.11 | SUCCESS => {
+			"ansible_facts": {
+				"ansible_all_ipv4_addresses": [
+					"10.0.2.15",
+					"192.168.1.11"
+				],
+				"ansible_all_ipv6_addresses": [
+					"fe80::3b:7bff:feb7:3b2d",
+					"2405:4802:17e8:d820:ffff:ffff:ffff:ff44",
+					"2405:4802:17e8:d820:a00:27ff:fef7:cf8e",
+					"fe80::a00:27ff:fef7:cf8e"
+				],
+				"ansible_apparmor": {
+					"status": "enabled"
+				},
+				"ansible_architecture": "x86_64",
+				"ansible_bios_date": "12/01/200
+				....
 
 
+- Ansible variable: https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_vars_facts.html
 
 
+- Ansible register a variable and conditional : https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_conditionals.html
+	ex:  tasks:
+		  - name: Register a variable
+			ansible.builtin.shell: cat /etc/motd
+			register: motd_contents
 
-
-
-Refer:
+		  - name: Use the variable in conditional statement
+			ansible.builtin.shell: echo "motd contains the word hi"
+			when: motd_contents.stdout.find('hi') != -1
 	

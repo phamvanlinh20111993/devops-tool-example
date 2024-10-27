@@ -1,0 +1,21 @@
+
+---
+# https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_conditionals.html#basic-conditionals-with-when
+
+- name: Show facts available on the system
+  ansible.builtin.debug:
+    var: ansible_facts
+    
+- name: Shut down Debian flavored systems
+  ansible.builtin.shell: |
+    echo ">>>>>>>>>>>>>>>>>>>>>>> this is ubuntu os machine <<<<<<<<<<<<<<<<<<<<<<<<<"
+  when: 
+    - ansible_facts['os_family'] == "Debian"
+  
+- name: Get the CPU temperature
+  set_fact:
+    temperature: "{{ ansible_facts['cpu_temperature'] }}"
+    
+- name: Restart the system if the temperature is too high
+  when: temperature | float > 90
+  shell: "reboot"
