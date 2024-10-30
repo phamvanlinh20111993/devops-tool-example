@@ -11,20 +11,22 @@
   ansible.builtin.command: microk8s status
   register: microk8sStatus
   ignore_errors: true
-  when: isMicrok8sInstall.stdout.find('microk8s') != -1 # is contain string microk8s
+  when: isMicrok8sInstall is defined and isMicrok8sInstall.stdout.find('microk8s') != -1 # is contain string microk8s
   
 - name: Stop microk8s if running
   ansible.builtin.systemd:
     name: microk8s
     state: stopped # "reloaded", "restarted", "started", "stopped"
-  when: microk8sStatus.stdout.find('microk8s') != -1
-  
+  when: microk8sStatus is defined and microk8sStatus.stdout.find('microk8s') != -1
+  ignore_errors: true
+   
 - name: Uninstall microk8s
   ansible.builtin.snap:
     name: microk8s
     state: absent
-  when: isMicrok8sInstall.stdout.find('microk8s') != -1
-  
+  when: isMicrok8sInstall is defined and isMicrok8sInstall.stdout.find('microk8s') != -1
+  ignore_errors: true
+   
 # https://microk8s.io/docs/getting-started
 - name: Install microk8s
   ansible.builtin.snap:

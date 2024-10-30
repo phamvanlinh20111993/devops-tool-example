@@ -2,20 +2,56 @@
 ---
 # https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_conditionals.html#basic-conditionals-with-when
 
+  
+# hang screen with [192.168.1.11] TASK: Show facts available on the system (debug)> this task will fix the error bellow
+- name: Gather facts
+  ansible.builtin.setup:
+
 - name: Show facts available on the system
   ansible.builtin.debug:
-    var: ansible_facts
+   var: ansible_facts
+   
+- name: Show specific facts
+  ansible.builtin.debug:
+    msg:
+      - "OS Family: {{ ansible_facts['os_family'] }}"
+      - "Distribution: {{ ansible_facts['distribution'] }}"
+      - "Version: {{ ansible_facts['distribution_version'] }}"
     
-- name: Shut down Debian flavored systems
+- name: Shut down Ubuntu flavored systems
   ansible.builtin.shell: |
     echo ">>>>>>>>>>>>>>>>>>>>>>> this is ubuntu os machine <<<<<<<<<<<<<<<<<<<<<<<<<"
   when: 
-    - ansible_facts['os_family'] == "Debian"
+    - ansible_facts['os_family'] == "ubuntu"
   
+- name: Check Ubuntu os
+  ansible.builtin.shell: echo "only on Ubuntu, derivatives, and later"
+  when: ansible_facts['os_family'] == "Ubuntu"
+    
 - name: Get the CPU temperature
   set_fact:
     temperature: "{{ ansible_facts['cpu_temperature'] }}"
-    
+  ignore_errors: true
+   
 - name: Restart the system if the temperature is too high
   when: temperature | float > 90
   shell: "reboot"
+  ignore_errors: true
+  
+- name: Run with items greater than 5
+  ansible.builtin.command: echo {{ item }}
+  loop: [ 0, 2, 4, 6, 8, 10 ]
+  when: item > 5
+  
+- name: Skip the whole task when a loop variable is undefined
+  ansible.builtin.command: echo {{ item }}
+  loop: "{{ mylist|default([]) }}"
+  when: item > 5
+  
+- name: Set a variable
+  ansible.builtin.set_fact:
+    x: linhphamvan
+
+- name: Print a variable
+  ansible.builtin.debug:
+    var: x

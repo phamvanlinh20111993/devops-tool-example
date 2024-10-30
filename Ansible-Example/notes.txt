@@ -42,6 +42,9 @@ Ansible:
 - To run a playbook in check mode, you can pass the -C or --check flag to the ansible-playbook command:
 	ansible-playbook --check playbook.yml
 	
+- get facts:
+		ansible -m setup -a gather_subset='!all' 192.168.1.11
+
 - Run a playbook: 
 
 	 ansible-playbook --verbose playbook.yml 

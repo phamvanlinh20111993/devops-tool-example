@@ -13,7 +13,9 @@
   ansible.builtin.shell: |
     for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
   delegate_to: localhost
- 
+  when: isDockerInstall is defined and isDockerInstall.stdout.find('docker') != -1
+  ignore_errors: true
+   
 # https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository     
 - name: Set up Docker apt repository
   ansible.builtin.shell: |

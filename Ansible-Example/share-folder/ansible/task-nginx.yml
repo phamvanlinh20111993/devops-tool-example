@@ -6,25 +6,32 @@
     dpkg -l | grep nginx
   register: isNginxInstall
   ignore_errors: true # Continue even if the command fails
-  
 
 - name: Check nginx running or not
   ansible.builtin.command: service nginx status
   register: isNginxRunning
   ignore_errors: true # Continue even if the command fails
+  
+- name: check isNginxInstall value of return code
+  ansible.builtin.debug:
+    var: 
+      - isNginxInstall.rc
+      - isNginxRunning.rc
 
 - name: stop nginx
   ansible.builtin.service:
     name: nginx
     state: stopped
-  when: isNginxRunning.stdout.find('nginx') != -1
+  when: isNginxInstall is defined and isNginxRunning.stdout.find('nginx') != -1
+  ignore_errors: true
   
 - name: uninstall nginx
   ansible.builtin.apt: 
     name: nginx 
     state: absent
-  when: isNginxInstall.stdout != ""
-
+  when: isNginxInstall is defined and isNginxInstall.stdout != ""
+  ignore_errors: true
+   
 - name: install nginx
   ansible.builtin.apt:
     name: nginx 

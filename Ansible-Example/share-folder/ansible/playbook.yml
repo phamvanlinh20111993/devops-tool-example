@@ -1,40 +1,44 @@
 
 ---
+- name: Install ansibleSlave
+  hosts: ansibleSlave
+  remote_user: vagrant
+  # debugger: always # Always invoke the debugger, regardless of the outcome
+  gather_facts: no 
+  become: yes  # Run tasks with sudo privileges
+  vars:
+  tasks:
+     
+   - name: Ansible common check
+     ansible.builtin.import_tasks: task-ansible-common.yml 
+     register: common_check_result
+
+   - name: Install docker
+     ansible.builtin.import_tasks: task-docker.yml
+     
+   - name: Install microk8s
+     ansible.builtin.import_tasks: task-microk8s.yml
+     
+   - name: Install nginx
+     ansible.builtin.import_tasks: task-nginx.yml
+     
+  # - name: Install oracle
+  #   import_tasks: task-oracle.yml
+   - name: Debug Ansible common check
+     ansible.builtin.debug:
+       var: common_check_result
+  
 - name: Install ansibleSlave1
   hosts: ansibleSlave1
   remote_user: vagrant
   
-  become: yes  # Run tasks with sudo privileges
-  vars:
-  handlers:
-     
-   - name: Ansible common check
-     import_tasks: task-ansible-common.yml 
-     
-   - name: Install docker
-     import_tasks: task-docker.yml
-     
-   - name: Install microk8s
-     import_tasks: task-microk8s.yml
-     
-   - name: Install nginx
-     import_tasks: task-nginx.yml
-     
-   - name: Install oracle
-     import_tasks: task-oracle.yml
-   
-  
-- name: Install ansibleSlave
-  hosts: ansibleSlave
-  remote_user: vagrant
-  
-  handlers:
+  tasks:
   
    - name: Ansible common check
-     import_tasks: task-ansible-common.yml
+     ansible.builtin.import_tasks: task-ansible-common.yml
      
    - name: Install docker
-     import_tasks: task-docker.yml
+     ansible.builtin.import_tasks: task-docker.yml
      
    - name: Install microk8s
-     import_tasks: task-microk8s.yml
+     ansible.builtin.import_tasks: task-microk8s.yml
